@@ -16,9 +16,10 @@
     }
   },
   "include": [
-    "src/**/*"
+    "api/**/*.ts"
   ],
   "exclude": [
-    "src/client"
+    "node_modules",
+    ".idea"
   ]
 }

@@ -1,15 +1,8 @@
 import * as pg from 'pg';
+import {dbconfig} from '../config/db_config'
 
-const pgconfig = {
-    user: 'postgres',
-    database: 'testdb',
-    password: 'postgres',
-    host: 'localhost',
-    port: 5432
-};
-
-const pool = new pg.Pool(pgconfig);
-console.log(`DB Connection Settings: ${JSON.stringify(pgconfig)}`);
+const pool = new pg.Pool(dbconfig);
+console.log(`DB Connection Settings: ${JSON.stringify(dbconfig)}`);
 
 /**
  * Single Query to Postgres
