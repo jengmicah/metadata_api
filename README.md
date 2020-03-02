@@ -32,6 +32,7 @@ Update to latest code with `git pull`
 
 ### Install Node Modules for the project
 
+Run `npm install --global --production windows-build-tools`
 Run `npm install`
 
 ### Install Postgresql for the database
