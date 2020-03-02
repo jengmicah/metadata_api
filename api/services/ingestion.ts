@@ -36,5 +36,20 @@ export default [
                 throw new Error(err)
             });
         }
+    },
+    {
+        path: endpoints.updateaccount,
+        method: 'post',
+        handler: async (req: Request, res: Response) => {
+            let reqbody = req.body;
+            console.log(reqbody);
+            let params = [reqbody['user_id'], reqbody['username'], reqbody['password'], reqbody['email']];
+            dbUtil.sqlToDB(queries.updateaccount, params).then(data => {
+                let result = data.rows;
+                res.status(200).json({message: result});
+            }).catch(err => {
+                throw new Error(err)
+            });
+        }
     }
 ];

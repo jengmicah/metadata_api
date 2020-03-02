@@ -5,3 +5,4 @@
 
 export const getaccount = '/getaccount';
 export const addaccount = '/addaccount';
+export const updateaccount = '/updateaccount';
