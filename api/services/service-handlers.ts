@@ -100,14 +100,13 @@ export default [
                     if (err) {
                         return console.log(err);
                     }
-                    console.log(body);
                     const data = body;
                     const inputfilename = data['input_filename'];
                     const blob = data['result'];
 
                     let params = [inputfilename, 'A', 'ch', JSON.stringify(blob), 1.0];
                     dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
-                        console.log('Done');
+                        console.log('Ingested');
                     }).catch(err => {
                         throw new Error(err)
                     });
