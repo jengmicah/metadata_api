@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node --inspect=5858 -r ts-node/register api\\server.ts",
     "start:watch": "nodemon",
-    "build": "tsc"
+    "build": "tsc",
+    "copyFiles": "copyfiles -f \"./api/**/*.yaml\" dist"
   },
   "author": "Adarsh Agarwal",
   "license": "ISC",
@@ -30,6 +31,7 @@
     "@types/express": "^4.17.2",
     "@types/node": "^13.7.5",
     "@types/pg": "^7.14.1",
+    "copyfiles": "^2.2.0",
     "nodemon": "^2.0.2",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.2"

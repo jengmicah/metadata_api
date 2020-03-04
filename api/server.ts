@@ -24,7 +24,8 @@ let spec = fs.readFileSync(swaggerDocPath, 'utf8');
 let oasDoc = jsyaml.safeLoad(spec);
 var options_object = {
     checkControllers: false
-}
+};
+
 oasTools.configure(options_object);
 
 // Server Setup
