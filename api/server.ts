@@ -18,23 +18,22 @@ process.on('unhandledRejection', e => {
     process.exit(1);
 });
 
-
-
+// OAS Setup: https://github.com/isa-group/oas-tools
 let swaggerDocPath = path.join(__dirname, 'oasDoc.yaml');
 let spec = fs.readFileSync(swaggerDocPath, 'utf8');
 let oasDoc = jsyaml.safeLoad(spec);
-
-const port = 5000;
-const router = express();
-applyMiddleware(middleware, router);
-applyRoutes(routes, router);
-
 var options_object = {
-    // controllers: path.join(__dirname, 'services'),
     checkControllers: false
 }
 oasTools.configure(options_object);
+
+// Server Setup
+const router = express();
+const port = 5000;
+
 oasTools.initialize(oasDoc, router, () => { // oas-tools version
+    applyMiddleware(middleware, router);
+    applyRoutes(routes, router);
     const server = http.createServer(router);
     server.listen(port, () => {
         let addr = server.address();
