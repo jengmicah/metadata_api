@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import * as endpoints from './endpoints';
 import * as dbUtil from "../utils/postgres_connector";
 import * as queries from './queries';
-import * as formidable from 'formidable';
+// import * as formidable from 'formidable';
 import path = require("path");
 
 const appDir = path.dirname(require.main.filename);
@@ -56,26 +56,26 @@ export default [
             });
         }
     },
-    {
-        path: endpoints.ingestmetadata,
-        method: 'post',
-        handler: async (req: Request, res: Response) => {
+    // {
+    //     path: endpoints.ingestmetadata,
+    //     method: 'post',
+    //     handler: async (req: Request, res: Response) => {
 
-            var form = new formidable.IncomingForm();
-            // form.uploadDir = this.directory;
-            form.keepExtensions = true;
-            form.type = 'multipart';
+    //         var form = new formidable.IncomingForm();
+    //         // form.uploadDir = this.directory;
+    //         form.keepExtensions = true;
+    //         form.type = 'multipart';
 
-            form.parse(req);
+    //         form.parse(req);
 
-            form.on('fileBegin', function (name, file) {
-                file.path = appDir + '/uploads/' + file.name;
-            });
+    //         form.on('fileBegin', function (name, file) {
+    //             file.path = appDir + '/uploads/' + file.name;
+    //         });
 
-            form.on('file', function (name, file) {
-                console.log('Uploaded ' + file.name);
-            });
-            res.status(200).json({message: 'success'});
-        }
-    }
+    //         form.on('file', function (name, file) {
+    //             console.log('Uploaded ' + file.name);
+    //         });
+    //         res.status(200).json({message: 'success'});
+    //     }
+    // }
 ];
