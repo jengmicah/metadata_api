@@ -3,6 +3,7 @@ import * as endpoints from './endpoints';
 import * as dbUtil from "../utils/postgres_connector";
 import * as queries from './queries';
 import * as formidable from 'formidable';
+import * as fs from 'fs';
 import path = require("path");
 
 const appDir = path.dirname(require.main.filename);
@@ -74,7 +75,22 @@ export default [
 
             form.on('file', function (name, file) {
                 console.log('Uploaded ' + file.name);
+
+                const outputfilename = file.name;
+                // @ts-ignore
+                const data = JSON.parse(fs.readFileSync(appDir + '/uploads/' + file.name));
+
+                const inputfilename = data['input_filename'];
+                const blob = data['result'];
+
+                let params = [inputfilename, outputfilename, JSON.stringify(blob)];
+                dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
+                    console.log('Done ', file.name);
+                }).catch(err => {
+                    throw new Error(err)
+                });
             });
+
             res.status(200).json({message: 'success'});
         }
     }

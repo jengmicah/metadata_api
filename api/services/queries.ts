@@ -9,3 +9,5 @@ export const addaccount = `insert into account values (default, $1, $2, $3, curr
 export const updateaccount = `update account
                               set username = $2, password = $3, email = $4
                               where user_id = $1;`;
+
+export const ingestjsonblob = `insert into aggregated_metadata values (default, $2, current_timestamp, $3, $1)`;
