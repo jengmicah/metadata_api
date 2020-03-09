@@ -6,37 +6,93 @@ import * as formidable from 'formidable';
 import * as fs from 'fs';
 import path = require("path");
 import request = require("request");
+import {version} from "punycode";
 
 const appDir = path.dirname(require.main.filename);
 
-const ingestJSONFile = function (req: Request, res: Response) {
-    var form = new formidable.IncomingForm();
-    // form.uploadDir = this.directory;
-    form.keepExtensions = true;
-    form.type = 'multipart';
+const ingestionHandler = async function (req: Request, res: Response) {
+// check for content type of request
+    const headers = req.headers;
 
-    form.parse(req);
+    if (headers['content-type'].includes('json')) {
+        let reqbody = req.body;
+        let listURLs = reqbody['blobs'];
 
-    form.on('fileBegin', function (name, file) {
-        file.path = appDir + '/uploads/' + file.name;
-    });
+        for (const b of listURLs) {
+            request(b, {json: true}, (err, resp, body) => {
+                if (err) {
+                    return console.log(err);
+                }
 
-    form.on('file', function (name, file) {
-        console.log('Uploaded ' + file.name);
+                // Initializing parameters for queries
+                const data = body;
+                const inputfilename = data['input_filename'];
+                const blob = data['result'];
+                let version = 1;
+                if (Object.keys(data).indexOf('version') > 0) {
+                    version = data['version'];
+                }
 
-        // @ts-ignore
-        const data = JSON.parse(fs.readFileSync(appDir + '/uploads/' + file.name));
+                // Check for existing metadata for filename
+                dbUtil.sqlToDB(queries.queryjsonblob, [inputfilename, version]).then(result => {
+                    if (result['rows'].length > 0) {
+                        // Update existing row
+                        dbUtil.sqlToDB(queries.updatejsonblob, [inputfilename, version, JSON.stringify(blob)]).then(result => {
+                            console.log('Updated');
+                        }).catch(err => {
+                            throw new Error(err)
+                        });
+                    } else {
+                        // Add new row
+                        let params = [inputfilename, 'A', 'ch', JSON.stringify(blob), version];
+                        dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
+                            console.log('Ingested');
+                        }).catch(err => {
+                            throw new Error(err)
+                        });
+                    }
+                }).catch(err => {
+                    throw new Error(err)
+                });
 
-        const inputfilename = data['input_filename'];
-        const blob = data['result'];
 
-        let params = [inputfilename, 'A', '', JSON.stringify(blob), 1.0];
-        dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
-            console.log('Done ', file.name);
-        }).catch(err => {
-            throw new Error(err)
+            });
+        }
+    } else if (headers['content-type'].includes('form')) {
+        var form = new formidable.IncomingForm();
+        // form.uploadDir = this.directory;
+        form.keepExtensions = true;
+        form.type = 'multipart';
+
+        form.parse(req);
+
+        form.on('fileBegin', function (name, file) {
+            file.path = appDir + '/uploads/' + file.name;
         });
-    });
+
+        form.on('file', function (name, file) {
+            console.log('Uploaded ' + file.name);
+
+            // @ts-ignore
+            const data = JSON.parse(fs.readFileSync(appDir + '/uploads/' + file.name));
+
+            const inputfilename = data['input_filename'];
+            const blob = data['result'];
+            let version = 1;
+            if (Object.keys(data).indexOf('version') > 0) {
+                version = data['version'];
+            }
+
+            let params = [inputfilename, 'A', '', JSON.stringify(blob), version];
+            dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
+                console.log('Done ', file.name);
+            }).catch(err => {
+                throw new Error(err)
+            });
+        });
+    }
+
+    res.status(200).json({message: 'success'});
 };
 
 export default [
@@ -91,28 +147,6 @@ export default [
     {
         path: endpoints.ingestmetadata,
         method: 'post',
-        handler: async (req: Request, res: Response) => {
-            let reqbody = req.body;
-            let listURLs = reqbody['blobs'];
-
-            for (const b of listURLs) {
-                request(b, {json: true}, (err, resp, body) => {
-                    if (err) {
-                        return console.log(err);
-                    }
-                    const data = body;
-                    const inputfilename = data['input_filename'];
-                    const blob = data['result'];
-
-                    let params = [inputfilename, 'A', 'ch', JSON.stringify(blob), 1.0];
-                    dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
-                        console.log('Ingested');
-                    }).catch(err => {
-                        throw new Error(err)
-                    });
-                });
-            }
-            res.status(200).json({message: 'success'});
-        }
+        handler: ingestionHandler
     }
 ];
