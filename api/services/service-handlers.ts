@@ -6,9 +6,40 @@ import * as formidable from 'formidable';
 import * as fs from 'fs';
 import path = require("path");
 import request = require("request");
-import {version} from "punycode";
 
 const appDir = path.dirname(require.main.filename);
+
+const ingestionExecute = function (data: any) {
+// Initializing parameters for queries
+    const inputfilename = data['input_filename'];
+    const blob = data['result'];
+    let version = 1;
+    if (Object.keys(data).indexOf('version') > 0) {
+        version = data['version'];
+    }
+
+    // Check for existing metadata for filename
+    dbUtil.sqlToDB(queries.queryjsonblob, [inputfilename, version]).then(result => {
+        if (result['rows'].length > 0) {
+            // Update existing row
+            dbUtil.sqlToDB(queries.updatejsonblob, [inputfilename, version, JSON.stringify(blob)]).then(result => {
+                console.log('Updated');
+            }).catch(err => {
+                throw new Error(err)
+            });
+        } else {
+            // Add new row
+            let params = [inputfilename, 'A', 'ch', JSON.stringify(blob), version];
+            dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
+                console.log('Ingested');
+            }).catch(err => {
+                throw new Error(err)
+            });
+        }
+    }).catch(err => {
+        throw new Error(err)
+    });
+};
 
 const ingestionHandler = async function (req: Request, res: Response) {
 // check for content type of request
@@ -22,37 +53,7 @@ const ingestionHandler = async function (req: Request, res: Response) {
             request(b, {json: true}, (err, resp, body) => {
                 if (err) return console.log(err);
 
-                // Initializing parameters for queries
-                const data = body;
-                const inputfilename = data['input_filename'];
-                const blob = data['result'];
-                let version = 1;
-                if (Object.keys(data).indexOf('version') > 0) {
-                    version = data['version'];
-                }
-
-                // Check for existing metadata for filename
-                dbUtil.sqlToDB(queries.queryjsonblob, [inputfilename, version]).then(result => {
-                    if (result['rows'].length > 0) {
-                        // Update existing row
-                        dbUtil.sqlToDB(queries.updatejsonblob, [inputfilename, version, JSON.stringify(blob)]).then(result => {
-                            console.log('Updated');
-                        }).catch(err => {
-                            throw new Error(err)
-                        });
-                    } else {
-                        // Add new row
-                        let params = [inputfilename, 'A', 'ch', JSON.stringify(blob), version];
-                        dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
-                            console.log('Ingested');
-                        }).catch(err => {
-                            throw new Error(err)
-                        });
-                    }
-                }).catch(err => {
-                    throw new Error(err)
-                });
-
+                ingestionExecute(body);
 
             });
         }
@@ -71,31 +72,19 @@ const ingestionHandler = async function (req: Request, res: Response) {
         form.on('file', function (name, file) {
             console.log('Uploaded ' + file.name);
 
+            const filepath = appDir + '/uploads/' + file.name;
             // @ts-ignore
-            const data = JSON.parse(fs.readFileSync(appDir + '/uploads/' + file.name));
+            const data = JSON.parse(fs.readFileSync(filepath));
 
-            const inputfilename = data['input_filename'];
-            const blob = data['result'];
-            let version = 1;
-            if (Object.keys(data).indexOf('version') > 0) {
-                version = data['version'];
-            }
+            ingestionExecute(data);
 
-            let params = [inputfilename, 'A', '', JSON.stringify(blob), version];
-            dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
-                console.log('Done ', file.name);
-                const filepath = appDir + '/uploads/' + file.name;
+            fs.stat(filepath, function (err, stats) {
+                if (err) return console.log(err);
 
-                // Deleting files after data ingested
-                fs.stat(filepath, function (err, stats) {
+                fs.unlink(filepath, function (err) {
                     if (err) return console.log(err);
-
-                    fs.unlink(filepath, function (err) {
-                        if (err) return console.log(err);
-                    });
+                    console.log('file deleted successfully');
                 });
-            }).catch(err => {
-                throw new Error(err)
             });
         });
     }
