@@ -20,9 +20,7 @@ const ingestionHandler = async function (req: Request, res: Response) {
 
         for (const b of listURLs) {
             request(b, {json: true}, (err, resp, body) => {
-                if (err) {
-                    return console.log(err);
-                }
+                if (err) return console.log(err);
 
                 // Initializing parameters for queries
                 const data = body;
@@ -86,6 +84,16 @@ const ingestionHandler = async function (req: Request, res: Response) {
             let params = [inputfilename, 'A', '', JSON.stringify(blob), version];
             dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
                 console.log('Done ', file.name);
+                const filepath = appDir + '/uploads/' + file.name;
+
+                // Deleting files after data ingested
+                fs.stat(filepath, function (err, stats) {
+                    if (err) return console.log(err);
+
+                    fs.unlink(filepath, function (err) {
+                        if (err) return console.log(err);
+                    });
+                });
             }).catch(err => {
                 throw new Error(err)
             });
