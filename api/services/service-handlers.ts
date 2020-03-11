@@ -9,27 +9,44 @@ import request = require("request");
 
 const appDir = path.dirname(require.main.filename);
 
+/** Ingestion Execution Function - takes in json blob, checks if already present, updates if already present, adds if needed
+ * @param data - json blob
+ */
 const ingestionExecute = function (data: any) {
 // Initializing parameters for queries
-    const inputfilename = data['input_filename'];
-    const blob = data['result'];
+    const inputfilename = data['input_filename'] || data['filename'];
+
+    // check if blob contains 'result' key to decide the overall metadata to be stored
+    let generatortype = '';
+    let blob = data;
+    if (Object.keys(data).indexOf('result') >= 0) {
+        blob = data['result'][0];
+        if (Object.keys(blob).indexOf('predictions') < 0) {
+            generatortype = 'characterization';
+        } else {
+            generatortype = 'classification';
+        }
+    } else {
+        generatortype = 'transcription';
+    }
+
     let version = 1;
     if (Object.keys(data).indexOf('version') > 0) {
         version = data['version'];
     }
 
     // Check for existing metadata for filename
-    dbUtil.sqlToDB(queries.queryjsonblob, [inputfilename, version]).then(result => {
+    dbUtil.sqlToDB(queries.queryjsonblob, [inputfilename, 'A', generatortype, version]).then(result => {
         if (result['rows'].length > 0) {
             // Update existing row
-            dbUtil.sqlToDB(queries.updatejsonblob, [inputfilename, version, JSON.stringify(blob)]).then(result => {
+            dbUtil.sqlToDB(queries.updatejsonblob, [inputfilename, 'A', generatortype, version, JSON.stringify(blob)]).then(result => {
                 console.log('Updated');
             }).catch(err => {
                 throw new Error(err)
             });
         } else {
             // Add new row
-            let params = [inputfilename, 'A', 'ch', JSON.stringify(blob), version];
+            let params = [inputfilename, 'A', generatortype, JSON.stringify(blob), version];
             dbUtil.sqlToDB(queries.ingestjsonblob, params).then(data => {
                 console.log('Ingested');
             }).catch(err => {
@@ -41,6 +58,10 @@ const ingestionExecute = function (data: any) {
     });
 };
 
+/** ingestion Handler function - decides the kind of ingestion based on request type
+ * @param req - request object
+ * @param res - response object
+ */
 const ingestionHandler = async function (req: Request, res: Response) {
 // check for content type of request
     const headers = req.headers;
