@@ -8,7 +8,7 @@ servers:
 paths:
   /api/ingestmetadata:
     post:
-      description: API to ingest metadata json blob files, based on source and type
+      description: API Endpoint to ingest metadata json blob files, based on source and type
       requestBody:
         content:
           application/json:
@@ -20,6 +20,21 @@ paths:
       responses:
         '200':
           description: Successfully Ingested JSON metadata
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: string
+              examples: {}
+      servers:
+        - url: 'http://localhost:5000'
+    servers:
+      - url: 'http://localhost:5000'
+  /api/querymetadata:
+    get:
+      description: API Endpoint to Query Metadata based on multiple filters
+      responses:
+        '200':
+          description: Metadata successfully queried
           content:
             application/json; charset=utf-8:
               schema:

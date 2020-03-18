@@ -166,5 +166,17 @@ export default [
         path: endpoints.ingestmetadata,
         method: 'post',
         handler: ingestionHandler
+    },
+    {
+        path: endpoints.querymetadata,
+        method: 'get',
+        handler: async (req: Request, res: Response) => {
+            dbUtil.sqlToDB(queries.genericAudioMetadataQuery, []).then(data => {
+                let result = data.rows;
+                res.status(200).json({message: result});
+            }).catch(err => {
+                throw new Error(err)
+            });
+        }
     }
 ];
