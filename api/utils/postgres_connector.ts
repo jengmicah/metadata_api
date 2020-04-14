@@ -4,13 +4,37 @@ import {dbconfig} from '../config/db_config'
 const pool = new pg.Pool(dbconfig);
 console.log(`DB Connection Settings: ${JSON.stringify(dbconfig)}`);
 
+
+/**
+ * Interface and function for calls to dbUtil.sqlToDB()
+ * */
+interface sqlToDBParams {
+    query: string;
+    params?: string[];
+    callback?: Function;
+}
+
+/**
+ * common function for executing queries on the database
+ * @param input - parameters for postgres utility function
+ */
+export const queryDB = function (input: sqlToDBParams) {
+    sqlToDB(input.query, input.params).then(
+        result => {
+            if (input.callback) input.callback(result);
+        }
+    ).catch(err => {
+        throw new Error(err)
+    });
+};
+
 /**
  * Single Query to Postgres
  * @param sql: the query for store data
  * @param data: the data to be stored
  * @return result
  */
-export const sqlToDB = async (sql: string, data: string[][]) => {
+export const sqlToDB = async (sql: string, data: string[]) => {
     try {
         return pool.query(sql, data)
 
