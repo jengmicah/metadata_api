@@ -9,17 +9,34 @@ import * as dbUtil from "../utils/postgres_connector";
  */
 const audioQueryExecute = function (res: Response, queryParams: any = {}) {
 
-    let query = queries.genericAudioMetadataQuery;
-    let params = [queryParams['mediatype'], queryParams['generatortype'],
-        queryParams['version'] || '1.0'];
-    if (Object.keys(queryParams).indexOf('filename') >= 0) {
-        query += 'and inputfilename like concat(\'%\',$4::text, \'%\')';
-        params.push(queryParams['filename']);
+    let query = '';
+    if (Object.keys(queryParams).indexOf('return_raw_metadata') >= 0) {
+        try {
+            if (Boolean(queryParams['return_raw_metadata'])) {
+                query = queries.genericAudioFileQuery;
+            } else {
+                query = queries.genericAudioMetadataQuery;
+            }
+        } catch (e) {
+            res.status(400).send({message: 'Incorrect value for boolean parameter \'return_raw_metadata\''});
+        }
+    } else {
+        query = queries.genericAudioMetadataQuery;
+    }
+
+    if (queryParams['filename']) {
+        query += ' and inputfilename like \'%' + queryParams['filename'] + '%\'';
+    }
+    if (queryParams['generatortype']) {
+        query += ' and generatortype like \'%' + queryParams['generatortype'] + '%\'';
+    }
+    if (queryParams['version']) {
+        query += ' and version like \'%' + queryParams['version'] + '%\'';
     }
 
     dbUtil.queryDB({
         query: query,
-        params: params,
+        params: [],
         callback: (data: any) => {
             let result = data.rows;
             res.status(200).send({message: 'success', response: result});

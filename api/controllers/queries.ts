@@ -27,12 +27,15 @@ export const updatejsonblob = `
       and version = $4
 `;
 export const genericAudioMetadataQuery = `
-    select *
+    select inputfilename, inputtype, generatortype, metadata, version, ingested_date_time
     from aggregated_metadata
-    where inputtype like concat('%', $1::text, '%')
-      and generatortype like concat('%', $2::text, '%')
-      and version like concat('%', $3::text, '%')
+    where inputtype like 'A'
 `;
+export const genericAudioFileQuery = `
+    select inputfilename, inputtype, generatortype, version, ingested_date_time
+    from aggregated_metadata
+    where inputtype like 'A'
+`
 
 /***** Video-Specific Queries *****/
 export const updateMetaDetails = `

@@ -221,7 +221,7 @@ const ingestionHandler = async function (req: Request, res: Response) {
                         ' the actual metadata to be ingested'
                 })
             }
-            const fileresponse = await ingestionExecute(reqbody['metadata'], mediatype, generatortype.tolowerCase());
+            const fileresponse = await ingestionExecute(reqbody['metadata'], mediatype, generatortype.toLowerCase());
             return res.status(200).send({message: 'success', response: fileresponse});
         }
     } else {

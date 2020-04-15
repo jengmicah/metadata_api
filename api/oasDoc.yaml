@@ -19,18 +19,16 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Ingestion'
-            example:
-              '0':
-                value: |-
-                  {
-                  "mediatype": "A",
-                  "generatortype": "transcription",
-                  "presignedURLs":[
-                      "https://sandboxdata002.blob.core.windows.net/com-msi-cto-testing-datasets/sample_audio_files/transcriptions/2017_260_00_00_GMT_trunk_gateway_fxo_8_5_6246405270325927.json?st=2020-04-10T23%3A41%3A01Z&se=2020-04-30T23%3A41%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=Vy2jcrUsKXHXo2gblXVgf%2BDzD8yd%2FBaUeOSn2mtJRL8%3D",
-                      "https://sandboxdata002.blob.core.windows.net/com-msi-cto-testing-datasets/sample_audio_files/transcriptions/2019_05_04_00_00_49_Ch32.json?st=2020-04-10T23%3A41%3A45Z&se=2020-04-30T23%3A41%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=uKGJkUBhiP3likDr8L7XknAqSj0g3KRbt5DngNzsMr4%3D",
-                      "https://sandboxdata002.blob.core.windows.net/com-msi-cto-testing-datasets/sample_audio_files/transcriptions/clip2.json?st=2020-04-10T23%3A42%3A04Z&se=2020-04-30T23%3A42%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=WbE9DWssifU%2FShfrP%2Ff5OOfbbAiRK2hpiSx%2Bjtjf9YI%3D",
-                      ]
-                  }
+            example: |-
+              {
+              "mediatype": "A",
+              "generatortype": "transcription",
+              "presignedURLs":[
+                  "https://sandboxdata002.blob.core.windows.net/com-msi-cto-testing-datasets/sample_audio_files/transcriptions/2017_260_00_00_GMT_trunk_gateway_fxo_8_5_6246405270325927.json?st=2020-04-10T23%3A41%3A01Z&se=2020-04-30T23%3A41%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=Vy2jcrUsKXHXo2gblXVgf%2BDzD8yd%2FBaUeOSn2mtJRL8%3D",
+                  "https://sandboxdata002.blob.core.windows.net/com-msi-cto-testing-datasets/sample_audio_files/transcriptions/2019_05_04_00_00_49_Ch32.json?st=2020-04-10T23%3A41%3A45Z&se=2020-04-30T23%3A41%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=uKGJkUBhiP3likDr8L7XknAqSj0g3KRbt5DngNzsMr4%3D",
+                  "https://sandboxdata002.blob.core.windows.net/com-msi-cto-testing-datasets/sample_audio_files/transcriptions/clip2.json?st=2020-04-10T23%3A42%3A04Z&se=2020-04-30T23%3A42%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=WbE9DWssifU%2FShfrP%2Ff5OOfbbAiRK2hpiSx%2Bjtjf9YI%3D"
+                  ]
+              }
       responses:
         '200':
           description: Success Response
