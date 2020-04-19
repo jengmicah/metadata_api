@@ -18,21 +18,21 @@ process.on('unhandledRejection', e => {
     process.exit(1);
 });
 
-// OAS Setup: https://github.com/isa-group/oas-tools
-let swaggerDocPath = path.join(__dirname, 'oasDoc.yaml');
-let spec = fs.readFileSync(swaggerDocPath, 'utf8');
-let oasDoc = jsyaml.safeLoad(spec);
-var options_object = {
-    checkControllers: false
-};
+// // OAS Setup: https://github.com/isa-group/oas-tools
+// let swaggerDocPath = path.join(__dirname, 'oasDoc.yaml');
+// let spec = fs.readFileSync(swaggerDocPath, 'utf8');
+// let oasDoc = jsyaml.safeLoad(spec);
+// var options_object = {
+//     checkControllers: false
+// };
 
-oasTools.configure(options_object);
+// oasTools.configure(options_object);
 
 // Server Setup
 const router = express();
 const port = 5000;
 
-oasTools.initialize(oasDoc, router, () => { // oas-tools version
+// oasTools.initialize(oasDoc, router, () => { // oas-tools version
     applyMiddleware(middleware, router);
     applyRoutes(routes, router);
     const server = http.createServer(router);
@@ -41,5 +41,5 @@ oasTools.initialize(oasDoc, router, () => { // oas-tools version
         let bind = (typeof addr === 'string') ? `pipe ${addr}` : `port ${addr.port}`;
         console.log(`Listening on ${bind}`);
     });
-});
+// });
 
