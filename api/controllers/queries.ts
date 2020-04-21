@@ -4,41 +4,47 @@
 
 /***** Generic Queries *****/
 export const ingestjsonblob = `
-    insert into aggregated_metadata 
-    values 
-    (default, $1, $2, $3, $4, $5, $6, '{}', current_timestamp)
+    insert into aggregated_metadata
+    values (default, $1, $2, $3, $4, $5, $6, '{}', current_timestamp)
 `;
 export const queryjsonblob = `
-    select * from aggregated_metadata 
-    where 
-    inputfilename like $1 and 
-    inputtype like $2 and 
-    generatortype like $3 and 
-    version = $4
+    select *
+    from aggregated_metadata
+    where inputfilename like $1
+      and mediatype like $2
+      and generatortype like $3
+      and version = $4
 `;
 
 
 /***** Audio-Specific Queries *****/
 export const updatejsonblob = `
-    update aggregated_metadata 
-    set metadata = $5 
-    where 
-    inputfilename like $1 and 
-    inputtype like $2 and 
-    generatortype like $3 and 
-    version = $4
+    update aggregated_metadata
+    set metadata = $5
+    where inputfilename like $1
+      and mediatype like $2
+      and generatortype like $3
+      and version = $4
 `;
 export const genericAudioMetadataQuery = `
-    select * from aggregated_metadata
-    where
-    inputtype like concat('%', $1::text, '%') and
-    generatortype like concat('%', $2::text, '%') and 
-    version like concat('%', $3::text, '%')
+    select distinct am.inputfilename, am.mediatype, am.generatortype, am.version, am.ingested_date_time, am.metadata
+    from aggregated_metadata am,
+         jsonb_array_elements(am.metadata -> 'result') obj
+    where am.mediatype like 'A'
 `;
-export const queryAudioJSONArray = `
-    select *
-    from aggregated_metadata am, jsonb_array_elements(am.metadata -> 'result') obj
-    where (obj -> 'characterization' -> 'is_stereo')::boolean = true;
+export const genericAudioFileQuery = `
+    select distinct inputfilename, mediatype, generatortype, version, ingested_date_time
+    from aggregated_metadata am,
+         jsonb_array_elements(am.metadata -> 'result') obj
+    where am.mediatype like 'A'
+`;
+export const genericAudioJSONFieldTypeCheck = `
+    select distinct jsonb_typeof(obj -> $1 -> $2)
+    from aggregated_metadata am,
+         jsonb_array_elements(am.metadata -> 'result') obj
+    where am.mediatype like 'A'
+      and am.generatortype like $1
+    limit 1;
 `;
 
 /***** Video-Specific Queries *****/
@@ -46,7 +52,7 @@ export const queryAudioJSONArray = `
 // update aggregated_metadata 
 // set classfrequencies = classfrequencies::jsonb || $3::jsonb
 // where
-// inputtype like $1 and
+// mediatype like $1 and
 // jobdetails->>'jobID' like $2
 export const updateClassFrequencies = `
     SELECT update_class_frequencies($1, $2, $3)
@@ -57,7 +63,7 @@ export const mergeJsonBlob = `
     set metadata = jsonb_deep_merge(metadata, $5::jsonb)
     where 
     inputfilename like $1 and 
-    inputtype like $2 and 
+    mediatype like $2 and 
     generatortype like $3 and 
     version = $4
 `;
@@ -67,13 +73,13 @@ export const videoQueryForJobID = `
     select coalesce(jsonb_agg(jobdetails->'jobID'), '[]'::jsonb) as jobIDs
     from aggregated_metadata
     where 
-    inputtype like $1
+    mediatype like $1
 `;
 // Return entire row entries by jobID
 export const videoQueryByJobID = `
     select * from aggregated_metadata
     where 
-    inputtype like $1 and
+    mediatype like $1 and
     jobdetails->>'jobID' like $2
 `;
 // Returns the frequency of class for each jobID
@@ -82,7 +88,7 @@ export const videoQueryByClass = `
     select coalesce(jsonb_object_agg(jobdetails->>'jobID', classfrequencies->$2), '[]'::jsonb) as classfrequencies
     from aggregated_metadata
     where 
-    inputtype like $1 and
+    mediatype like $1 and
     classfrequencies->$2 is not null
 `;
 
@@ -110,7 +116,7 @@ export const psql_init_functions = `
      * Helper function for updateMetadataDetails()
      * Update class frequencies based on recently ingested blob
      */    
-    create or replace function update_class_frequencies(mediatype text, jobID text, count jsonb)
+    create or replace function update_class_frequencies(media_type text, jobID text, count jsonb)
     returns void language plpgsql as $$
     declare 
         _class   text;
@@ -125,7 +131,7 @@ export const psql_init_functions = `
                                             array[_class], 
                                             (coalesce(classfrequencies->>_class,'0')::int + _count)::text::jsonb)
             where
-            inputtype like $1 and
+            mediatype like $1 and
             jobdetails->>'jobID' like $2;
         end loop;
     end

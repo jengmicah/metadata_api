@@ -20,15 +20,6 @@ process.on('unhandledRejection', e => {
     process.exit(1);
 });
 
-<<<<<<< HEAD
-// // OAS Setup: https://github.com/isa-group/oas-tools
-// let swaggerDocPath = path.join(__dirname, 'oasDoc.yaml');
-// let spec = fs.readFileSync(swaggerDocPath, 'utf8');
-// let oasDoc = jsyaml.safeLoad(spec);
-// var options_object = {
-//     checkControllers: false
-// };
-=======
 // OAS Setup: https://github.com/isa-group/oas-tools
 let swaggerDocPath = path.join(__dirname, 'oasDoc.yaml');
 let spec = fs.readFileSync(swaggerDocPath, 'utf8');
@@ -48,17 +39,13 @@ var options_object = {
     oasAuth: false,
     ignoreUnknownFormats: true
 };
->>>>>>> da45ad2dfacda9dfe0eeb4cba5ce6603f33075c3
 
-// oasTools.configure(options_object);
+oasTools.configure(options_object);
 
 // Server Setup
 const router = express();
 const port = 5000;
 
-<<<<<<< HEAD
-// oasTools.initialize(oasDoc, router, () => { // oas-tools version
-=======
 router.use(fileUpload({
     createParentPath: true
 }));
@@ -78,7 +65,6 @@ router.use((err, req, res, next) => {
 });
 
 oasTools.initialize(oasDoc, router, () => { // oas-tools version
->>>>>>> da45ad2dfacda9dfe0eeb4cba5ce6603f33075c3
     applyMiddleware(middleware, router);
     const server = http.createServer(router);
     server.listen(port, () => {
@@ -86,5 +72,5 @@ oasTools.initialize(oasDoc, router, () => { // oas-tools version
         let bind = (typeof addr === 'string') ? `pipe ${addr}` : `port ${addr.port}`;
         console.log(`Listening on ${bind}`);
     });
-// });
+});
 

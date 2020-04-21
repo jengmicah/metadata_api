@@ -4,7 +4,7 @@ info:
   description: Ingestion API - to ingest audio metadata through pre-signed URLs/JSON<br>Query API - to query existing metadata with set of filters
   version: '0.1'
 servers:
-  - url: 'http://localhost:5000'
+  - url: 'http://10.5.221.43:5000'
 paths:
   /api/ingestmetadata:
     post:
@@ -57,9 +57,9 @@ paths:
                     type: string
                     example: 'Missing Key <Key Name>'
       servers:
-        - url: 'http://localhost:5000'
+        - url: 'http://10.5.221.43:5000'
     servers:
-      - url: 'http://localhost:5000'
+      - url: 'http://10.5.221.43:5000'
   /api/querymetadata/audio:
     get:
       description: Query API for aggregated metadata<br>Path /audio for audio queries<br>Path /video for video queries<br>Important Query Parameters - generatortype<br>Optional Query Parameters - Version
@@ -72,12 +72,17 @@ paths:
           required: true
           schema:
             type: string
-          example: classification/transcription/characterization
+          example: classification
         - name: version
           in: query
           schema:
             type: string
           example: 1.0
+        - name: return_raw_metadata
+          in: query
+          schema:
+            type: string
+          example: false
       responses:
         '200':
           description: Success Response
@@ -106,9 +111,9 @@ paths:
                     type: string
                     example: 'Missing Key <Key Name>'
       servers:
-        - url: 'http://localhost:5000'
+        - url: 'http://10.5.221.43:5000'
     servers:
-      - url: 'http://localhost:5000'
+      - url: 'http://10.5.221.43:5000'
   /api/querymetadata/video:
     get:
       description: Query API for aggregated metadata<br>Path /audio for audio queries<br>Path /video for video queries<br>Important Query Parameters - generatortype<br>Optional Query Parameters - Version
@@ -155,9 +160,58 @@ paths:
                     type: string
                     example: 'Missing Key <Key Name>'
       servers:
-        - url: 'http://localhost:5000'
+        - url: 'http://10.5.221.43:5000'
     servers:
-      - url: 'http://localhost:5000'
+      - url: 'http://10.5.221.43:5000'
+  /api/querymetadata/video/:jobID:
+    get:
+      description: Query API for aggregated metadata<br>Path /audio for audio queries<br>Path /video for video queries<br>Important Query Parameters - generatortype<br>Optional Query Parameters - Version
+      summary: Query API - Video Metadata
+      x-swagger-router-controller: apiRoutes
+      operationId: queryRoute
+      parameters:
+        - name: generatortype
+          in: query
+          required: true
+          schema:
+            type: string
+          example: classification/transcription/characterization
+        - name: version
+          in: query
+          schema:
+            type: string
+          example: 1.0
+      responses:
+        '200':
+          description: Success Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Success'
+                  response:
+                    type: object
+                    example: |
+                      {'key': 'value'}
+                required:
+                  - message
+        '400':
+          description: Error Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Missing Key <Key Name>'
+      servers:
+        - url: 'http://10.5.221.43:5000'
+    servers:
+      - url: 'http://10.5.221.43:5000'
 components:
   schemas:
     Success:

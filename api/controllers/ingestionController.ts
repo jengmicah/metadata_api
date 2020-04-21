@@ -16,7 +16,28 @@ const cleanUpJSON = function (json = "") {
 
     return outputjson;
 };
-
+/**
+ * Update Class Frequencies
+ * @param json - JSON object as a string
+ */
+const updateClassFrequencies = function(blob: any, mediatype: string, jobdetails: any) {
+    let count: any = {};
+    for (let nodeid of Object.keys(blob)) {
+        for(let timestamp of Object.keys(blob[nodeid])) {
+            let classes = JSON.parse(blob[nodeid][timestamp])["classes"];
+            for (let i = 0; i < classes.length; i++) {
+                classes[i].forEach((c:number) => {
+                    count[c] = count[c] ? count[c] + 1 : 1;
+                });
+            }
+        }
+    }
+    dbUtil.queryDB({
+        query: queries.updateClassFrequencies,
+        params: [mediatype, jobdetails['jobID'], JSON.stringify(count)],
+        callback: () => console.log("Updated Class Frequency")
+    });
+};
 /**
  * Initialization: Create psql function jsonb_deep_merge() for use in mergejsonblob()
  * */
@@ -89,12 +110,13 @@ const ingestionExecute = function (data: any,
     let query = queries.queryjsonblob;
     let params = [inputfilename, mediatype, generatortype, version];
 
-    if (mediatype == 'V') {
+    if (mediatype === 'V') {
         query += 'and jobdetails->>\'jobID\' like $5';
         params.push(jobdetails['jobID']);
+        console.log(data);
     }
-    // Check for existing metadata for filename
 
+    // Check for existing metadata for filename
     return new Promise<IngestionResolve>((resolve, reject) => {
         dbUtil.queryDB({
             query: query,
@@ -116,20 +138,12 @@ const ingestionExecute = function (data: any,
                         // Update/Append (merge) JSON blob
                         dbUtil.queryDB({
                             query: queries.mergeJsonBlob,
-                            params: [inputfilename, mediatype, generatortype,
+                            params: [inputfilename, 'V', generatortype,
                                 version, JSON.stringify(blob)],
                             callback: () => {
                                 console.log(inputfilename, 'Video Merged');
-                                dbUtil.queryDB({
-                                    query: queries.updateMetaDetails,
-                                    params: [mediatype, jobdetails['jobID'],
-                                        JSON.stringify(blob)],
-                                    callback: () => {
-                                        resolve({filename: inputfilename, file_action: 'updated'});
-                                        console.log(inputfilename,
-                                            "Updated Class Frequency");
-                                    }
-                                });
+                                updateClassFrequencies(blob, mediatype, jobdetails);
+                                resolve({filename: inputfilename, file_action: 'class frequency updated'});
                             }
                         });
                     }
@@ -142,16 +156,10 @@ const ingestionExecute = function (data: any,
                             jobdetails],
                         callback: () => {
                             console.log(inputfilename, 'Ingested');
-                            resolve({filename: inputfilename, file_action: 'ingested'});
                             if (mediatype === 'V') {
-                                dbUtil.queryDB({
-                                    query: queries.updateMetaDetails,
-                                    params: [mediatype, jobdetails['jobID'],
-                                        JSON.stringify(blob)],
-                                    callback: () => console.log(inputfilename,
-                                        "Updated Class Frequency")
-                                });
+                                updateClassFrequencies(blob, mediatype, jobdetails);
                             }
+                            resolve({filename: inputfilename, file_action: 'ingested'});
                         }
                     });
                 }
@@ -171,7 +179,7 @@ const ingestionHandler = async function (req: Request, res: Response) {
     const headers = req.headers;
 
     if (headers['content-type'].includes('json')) {
-        // Validation
+        // Validation: require mediatype and generatortype for all input JSON
         let reqbody = req.body;
         if (!reqbody['mediatype']) {
             return res.status(400).send({message: 'Missing Key \'mediatype\''});
@@ -230,6 +238,5 @@ const ingestionHandler = async function (req: Request, res: Response) {
 };
 
 export async function ingestionController(req: Request, res: Response) {
-
     await ingestionHandler(req, res);
 }
