@@ -16,17 +16,20 @@ const cleanUpJSON = function (json = "") {
 
     return outputjson;
 };
+
 /**
  * Update Class Frequencies
- * @param json - JSON object as a string
+ * @param blob
+ * @param mediatype
+ * @param jobdetails
  */
-const updateClassFrequencies = function(blob: any, mediatype: string, jobdetails: any) {
+const updateClassFrequencies = function (blob: any, mediatype: string, jobdetails: any) {
     let count: any = {};
     for (let nodeid of Object.keys(blob)) {
-        for(let timestamp of Object.keys(blob[nodeid])) {
+        for (let timestamp of Object.keys(blob[nodeid])) {
             let classes = JSON.parse(blob[nodeid][timestamp])["classes"];
             for (let i = 0; i < classes.length; i++) {
-                classes[i].forEach((c:number) => {
+                classes[i].forEach((c: number) => {
                     count[c] = count[c] ? count[c] + 1 : 1;
                 });
             }
@@ -38,6 +41,7 @@ const updateClassFrequencies = function(blob: any, mediatype: string, jobdetails
         callback: () => console.log("Updated Class Frequency")
     });
 };
+
 /**
  * Initialization: Create psql function jsonb_deep_merge() for use in mergejsonblob()
  * */
@@ -210,7 +214,8 @@ const ingestionHandler = async function (req: Request, res: Response) {
                                     ' the actual metadata to be ingested'
                             })
                         }
-                        const fileResponse = await ingestionExecute(body['metadata'], mediatype, generatortype.toLowerCase());
+                        const fileResponse = await ingestionExecute(body['metadata'], mediatype,
+                            generatortype.toLowerCase());
                         fileresponselist.push(fileResponse);
                         reqbody['presignedURLs'].splice(reqbody['presignedURLs'].indexOf(url), 1);
                         if (reqbody['presignedURLs'].length === 0) {

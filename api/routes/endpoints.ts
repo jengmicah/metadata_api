@@ -6,4 +6,5 @@
 export const ingestmetadata = '/api/ingestmetadata';
 
 // File Query Endpoints
-export const querymetadata = '/api/querymetadata/:mediatype/:jobID?';
+export const queryAudiometadata = '/api/querymetadata/:mediatype';
+export const queryVideometadata = '/api/querymetadata/:mediatype/:jobID?';

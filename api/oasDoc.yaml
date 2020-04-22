@@ -65,7 +65,7 @@ paths:
       description: Query API for aggregated metadata<br>Path /audio for audio queries<br>Path /video for video queries<br>Important Query Parameters - generatortype<br>Optional Query Parameters - Version
       summary: Query API - Audio Metadata
       x-swagger-router-controller: apiRoutes
-      operationId: queryRoute
+      operationId: queryAudioRoute
       parameters:
         - name: generatortype
           in: query
@@ -83,6 +83,11 @@ paths:
           schema:
             type: string
           example: false
+        - name: filename
+          in: query
+          schema:
+            type: string
+          example: file1.wav
       responses:
         '200':
           description: Success Response
@@ -114,61 +119,12 @@ paths:
         - url: 'http://10.5.221.43:5000'
     servers:
       - url: 'http://10.5.221.43:5000'
-  /api/querymetadata/video:
+  /api/querymetadata/video/:jobID?:
     get:
       description: Query API for aggregated metadata<br>Path /audio for audio queries<br>Path /video for video queries<br>Important Query Parameters - generatortype<br>Optional Query Parameters - Version
       summary: Query API - Video Metadata
       x-swagger-router-controller: apiRoutes
-      operationId: queryRoute
-      parameters:
-        - name: generatortype
-          in: query
-          required: true
-          schema:
-            type: string
-          example: classification/transcription/characterization
-        - name: version
-          in: query
-          schema:
-            type: string
-          example: 1.0
-      responses:
-        '200':
-          description: Success Response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Success'
-                  response:
-                    type: object
-                    example: |
-                      {'key': 'value'}
-                required:
-                  - message
-        '400':
-          description: Error Response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Missing Key <Key Name>'
-      servers:
-        - url: 'http://10.5.221.43:5000'
-    servers:
-      - url: 'http://10.5.221.43:5000'
-  /api/querymetadata/video/:jobID:
-    get:
-      description: Query API for aggregated metadata<br>Path /audio for audio queries<br>Path /video for video queries<br>Important Query Parameters - generatortype<br>Optional Query Parameters - Version
-      summary: Query API - Video Metadata
-      x-swagger-router-controller: apiRoutes
-      operationId: queryRoute
+      operationId: queryVideoRoute
       parameters:
         - name: generatortype
           in: query

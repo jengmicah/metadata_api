@@ -99,7 +99,8 @@ const videoQueryExecute = function (res: Response, mediatype: string,
     let query = [queries.videoQueryForJobID, queries.videoQueryByJobID, queries.videoQueryByClass];
     let params = [mediatype];
     let queryIdx = 0;
-    console.log(`jobID: ${jobID}`, `generatortype: ${generatortype}`, `model_name: ${model_name}`, `class: ${classnum}`);
+    console.log(`jobID: ${jobID}`, `generatortype: ${generatortype}`, `model_name: ${model_name}`,
+        `class: ${classnum}`);
     if (jobID !== undefined) {
         queryIdx = 1;
         params.push(jobID);
