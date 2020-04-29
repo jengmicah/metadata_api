@@ -57,10 +57,15 @@ export const genericAudioJSONFieldTypeCheck = `
 export const updateClassFrequencies = `
     SELECT update_class_frequencies($1, $2, $3)
 `;
-// Video version of updatejsonblob()
+// Updates JSON blob but merges Vulcan output and updates module_names
 export const mergeJsonBlob = `
     update aggregated_metadata 
-    set metadata = jsonb_deep_merge(metadata, $5::jsonb)
+    set metadata = jsonb_deep_merge(metadata, $5::jsonb),
+        jobdetails = jsonb_set(
+            jobdetails::jsonb, 
+            array['module_names'], 
+            to_jsonb(string_to_array($6, ','::text))
+        )
     where 
     inputfilename like $1 and 
     mediatype like $2 and 
@@ -68,9 +73,12 @@ export const mergeJsonBlob = `
     version = $4
 `;
 // Return jobIDs by either generatortype, model_name, or classnum
-// jobIDs accessed by results[0].jobids
+// jobIDs accessed by results[n].jobid
+// select coalesce(jsonb_agg(jobdetails->'jobID'), '[]'::jsonb) as jobID
 export const videoQueryForJobID = `
-    select coalesce(jsonb_agg(jobdetails->'jobID'), '[]'::jsonb) as jobIDs
+    select  jobdetails as jobdetails, 
+            ingested_date_time as ingested_date_time, 
+            generatortype as generatortype
     from aggregated_metadata
     where 
     mediatype like $1
@@ -84,8 +92,12 @@ export const videoQueryByJobID = `
 `;
 // Returns the frequency of class for each jobID
 // Key: jobID, Value: Frequency
+// select coalesce(jsonb_object_agg(jobdetails->>'jobID', classfrequencies->$2), '[]'::jsonb) as classfrequencies
 export const videoQueryByClass = `
-    select coalesce(jsonb_object_agg(jobdetails->>'jobID', classfrequencies->$2), '[]'::jsonb) as classfrequencies
+    select  jobdetails as jobdetails, 
+            ingested_date_time as ingested_date_time, 
+            generatortype as generatortype, 
+            classfrequencies->$2 as frequency
     from aggregated_metadata
     where 
     mediatype like $1 and

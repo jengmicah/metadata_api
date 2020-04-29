@@ -22,9 +22,9 @@ Download the executable for windows and run it
 
 ### Prepare Repo
 
-Clone repo <br>`git clone https://github.com/jengmicah/nodejs-express-api.git`
+Clone repo <br>`git clone https://msi-cto.visualstudio.com/analytics-metadata-aggregator/_git/aggregator-api`
 
-Navigate to your clone of the repo <br>`cd nodejs-express-api`.
+Navigate to your clone of the repo <br>`cd aggregator-api`.
 
 Update to latest code with <br>`git pull`
 
@@ -50,17 +50,17 @@ API_PORT=<port>
 ```
 
 #### Table Structure for `aggregated_metadata`
-| Field              | Type                | Description                                                                                                                       |
-|--------------------|---------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| Field              | Type                  | Description                                                                                                                       |
+|--------------------|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | metadata_id        | `serial`, primary key | Serial                                                                                                                            |
 | inputfilename      | `varchar(500)`        | **A:** Filename<br>**V:** Empty string                                                                                                       |
 | mediatype          | `varchar(30)`         | **A:** A<br>**V:** V                                                                                                                         |
-| generatortype      | `varchar(30)`         | **A:** characterized, classification, transcription<br>**V:** module name (e.g. squeezenet)                                                  |
+| generatortype      | `varchar(30)`         | **A:** characterized, classification, transcription<br>**V:** vulcan                                                  |
 | metadata           | `jsonb`               | **A:** Audio output<br>**V:** Vulcan output                                                                                                  |
 | version            | `varchar(30)`         | Defaults to `1.0` until specified                                                                                                   |
 | ingested_date_time | `timestamp`           | Defaults to `current_timestamp`                                                                                                     |
-| classfrequencies         | `jsonb`                | <pre>{}</pre>**A:** Empty string for all fields<br>**V:** Frequency of classes
-| jobdetails         | `jsonb`                | <pre>{<br>&nbsp;&nbsp;&nbsp;'model_name': '',<br>&nbsp;&nbsp;&nbsp;'signedUrls': [''],<br>&nbsp;&nbsp;&nbsp;'jobID': ''<br>}</pre>**A:** Empty string for all fields<br>**V:** Populate from "jobDetails" |
+| classfrequencies   | `jsonb`               | <pre>{}</pre>**A:** Empty string for all fields<br>**V:** Frequency of classes
+| jobdetails         | `jsonb`               | <pre>{<br>&nbsp;&nbsp;&nbsp;'model_name': '',<br>&nbsp;&nbsp;&nbsp;'signedUrls': [''],<br>&nbsp;&nbsp;&nbsp;'jobID': ''<br>&nbsp;&nbsp;&nbsp;'module_names': ['']<br>}</pre>**A:** Empty string for all fields<br>**V:** Populate from "jobDetails" |
 
 #### Create the `aggregated_metadata` table - 
 ```sql
@@ -98,14 +98,12 @@ api
 ```
 
 ###### Config
-
 ```
     db_config.ts - contains postgresql database configurations
     README.md - add any information about configurations here
 ```
 
 ###### Middleware
-
 ```
     common.ts - handleCors, handleBodyRequestParsing, handleCompression definitions
     index.ts - exports the middleware definitions
@@ -113,7 +111,6 @@ api
 ```
 
 ###### Controllers
-
 ```
     queries.ts - contains a list of all parameterized queries
     ingestionController.ts - contains all functions and the handler for ingestion API
@@ -121,14 +118,12 @@ api
 ```
 
 ###### Routes
-
 ```
     endpoints.ts - contains a list of endpoints
     apiRoutes.ts - configures routes with controllers
 ```
 
 ###### Utilities
-
 ```
     postgres_connector.ts - postgresql connector and database utilities
     index.ts - applyRoutes, applyMiddleware, other exports
@@ -138,13 +133,7 @@ api
 ### Endpoints
 
 `/api/ingestmetadata`
-<br>The endpoint links to a handler service which ingests json metadata provided to it in the form of either flat json files or a list of pre-signed
- URLS
+<br>The endpoint links to a handler service which ingests json metadata provided to it in the form of either flat json or a list of pre-signed URLS
 
 `/api/querymetadata/:mediatype`
 <br>The endpoint links to a handler service which calls the appropriate function to execute the queries to filter metadata, based on the mediatype
-
-### Handlers
-
-`ingestionHandler`
-`queryHandler`

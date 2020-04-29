@@ -16,7 +16,12 @@ const cleanUpJSON = function (json = "") {
 
     return outputjson;
 };
-
+/**
+ * Initialization: Create psql function jsonb_deep_merge() for use in mergejsonblob()
+ * */
+dbUtil.queryDB({
+    query: queries.psql_init_functions
+});
 /**
  * Update Class Frequencies
  * @param blob
@@ -41,14 +46,17 @@ const updateClassFrequencies = function (blob: any, mediatype: string, jobdetail
         callback: () => console.log("Updated Class Frequency")
     });
 };
-
 /**
- * Initialization: Create psql function jsonb_deep_merge() for use in mergejsonblob()
- * */
-dbUtil.queryDB({
-    query: queries.psql_init_functions
-});
-
+ * Parse metadata blob for module names
+ * @param blob
+ */
+const parseModules = function (blob: any) {
+    let modules = [];
+    for (let nodeid of Object.keys(blob)) {
+        modules.push(nodeid.split(":")[0]);
+    }
+    return modules;
+}
 /**
  * Ingestion File Resolver Class for file names and actions
  */
@@ -80,7 +88,8 @@ const ingestionExecute = function (data: any,
     let jobdetails = {
         'model_name': '',
         'signedUrls': [''],
-        'jobID': ''
+        'jobID': '',
+        'module_names': ['']
     };
     let blob = data;
     if (mediatype === 'A') {
@@ -100,12 +109,13 @@ const ingestionExecute = function (data: any,
 
 
     } else if (mediatype === 'V') {
-        inputfilename = '';
+        inputfilename = 'vulcan';
         blob = data['output']; // Vulcan output
         jobdetails = {
             'model_name': data['model_name'],
             'signedUrls': data['signedUrls'],
-            'jobID': data['jobID']
+            'jobID': data['jobID'],
+            'module_names': parseModules(blob)
         };
     }
 
@@ -143,7 +153,7 @@ const ingestionExecute = function (data: any,
                         dbUtil.queryDB({
                             query: queries.mergeJsonBlob,
                             params: [inputfilename, 'V', generatortype,
-                                version, JSON.stringify(blob)],
+                                version, JSON.stringify(blob), jobdetails['module_names'].toString()],
                             callback: () => {
                                 console.log(inputfilename, 'Video Merged');
                                 updateClassFrequencies(blob, mediatype, jobdetails);
@@ -185,20 +195,24 @@ const ingestionHandler = async function (req: Request, res: Response) {
     if (headers['content-type'].includes('json')) {
         // Validation: require mediatype and generatortype for all input JSON
         let reqbody = req.body;
+        // Check for mediatype
         if (!reqbody['mediatype']) {
             return res.status(400).send({message: 'Missing Key \'mediatype\''});
         }
-        if (!reqbody['generatortype']) {
-            return res.status(400).send({message: 'Missing Key \'generatortype\''});
-        }
-        let {mediatype, generatortype} = reqbody;
+        let { mediatype } = reqbody;
         if (mediatype.toLowerCase() === 'a' || mediatype.toLowerCase() === 'audio') {
             mediatype = 'A';
         } else if (mediatype.toLowerCase() === 'v' || mediatype.toLowerCase() === 'video') {
             mediatype = 'V'
+            reqbody['generatortype'] = 'vulcan';
         } else {
             return res.status(400).send({message: 'Invalid Media Type'});
         }
+        // Check for generatortype
+        if (!reqbody['generatortype']) {
+            return res.status(400).send({message: 'Missing Key \'generatortype\''});
+        }
+        let generatortype = reqbody['generatortype'];
 
         // Ingestion
         if (Object.keys(reqbody).indexOf('presignedURLs') >= 0) {
