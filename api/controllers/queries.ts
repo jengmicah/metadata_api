@@ -60,25 +60,25 @@ export const updateClassFrequencies = `
 // Updates JSON blob but merges Vulcan output and updates module_names
 export const mergeJsonBlob = `
     update aggregated_metadata 
-    set metadata = jsonb_deep_merge(metadata, $5::jsonb),
+    set metadata = jsonb_deep_merge(metadata, $6::jsonb),
         jobdetails = jsonb_set(
             jobdetails::jsonb, 
             array['module_names'], 
-            to_jsonb(string_to_array($6, ','::text))
+            to_jsonb(string_to_array($7, ','::text))
         )
     where 
     inputfilename like $1 and 
     mediatype like $2 and 
     generatortype like $3 and 
-    version = $4
+    version = $4 and
+    jobdetails->>'jobID' like $5
 `;
 // Return jobIDs by either generatortype, model_name, or classnum
 // jobIDs accessed by results[n].jobid
 // select coalesce(jsonb_agg(jobdetails->'jobID'), '[]'::jsonb) as jobID
 export const videoQueryForJobID = `
     select  jobdetails as jobdetails, 
-            ingested_date_time as ingested_date_time, 
-            generatortype as generatortype
+            ingested_date_time as ingested_date_time
     from aggregated_metadata
     where 
     mediatype like $1
@@ -96,7 +96,6 @@ export const videoQueryByJobID = `
 export const videoQueryByClass = `
     select  jobdetails as jobdetails, 
             ingested_date_time as ingested_date_time, 
-            generatortype as generatortype, 
             classfrequencies->$2 as frequency
     from aggregated_metadata
     where 
@@ -148,6 +147,15 @@ export const psql_init_functions = `
         end loop;
     end
     $$;
+
+    CREATE OR REPLACE FUNCTION mergeArrays (a1 ANYARRAY, a2 ANYARRAY) RETURNS ANYARRAY AS $$
+
+	SELECT ARRAY_AGG(x ORDER BY x)
+	FROM (
+		SELECT DISTINCT UNNEST($1 || $2) AS x
+	) s;
+
+$$ LANGUAGE SQL STRICT;
 `;
 
 // Not used: isolate each classnum

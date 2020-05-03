@@ -153,7 +153,7 @@ const ingestionExecute = function (data: any,
                         dbUtil.queryDB({
                             query: queries.mergeJsonBlob,
                             params: [inputfilename, 'V', generatortype,
-                                version, JSON.stringify(blob), jobdetails['module_names'].toString()],
+                                version, jobdetails['jobID'], JSON.stringify(blob), jobdetails['module_names'].toString()],
                             callback: () => {
                                 console.log(inputfilename, 'Video Merged');
                                 updateClassFrequencies(blob, mediatype, jobdetails);

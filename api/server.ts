@@ -64,6 +64,13 @@ router.use((err, req, res, next) => {
     });
 });
 
+// For development purposes
+router.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 oasTools.initialize(oasDoc, router, () => { // oas-tools version
     applyMiddleware(middleware, router);
     const server = http.createServer(router);
