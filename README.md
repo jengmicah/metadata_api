@@ -22,7 +22,7 @@ Download the executable for windows and run it
 
 ### Prepare Repo
 
-Clone repo <br>`git clone https://msi-cto.visualstudio.com/analytics-metadata-aggregator/_git/aggregator-api`
+Clone repo <br>`git clone https://github.com/jengmicah/nodejs-express-api.git`
 
 Navigate to your clone of the repo <br>`cd aggregator-api`.
 
